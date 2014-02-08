@@ -46,6 +46,7 @@
 #include "property_service.h"
 #include "devices.h"
 #include "init_parser.h"
+#include "ubi-user.h"
 #include "util.h"
 #include "log.h"
 
@@ -967,4 +968,28 @@ int do_wait(int nargs, char **args)
         return wait_for_file(args[1], atoi(args[2]));
     } else
         return -1;
+}
+
+int do_ubiattach(int nargs, char **args) {
+	int fd, ret;
+	struct ubi_attach_req req;
+
+	int mtd_num = atoi(args[1]);
+	int dev_num = atoi(args[2]);
+ 
+	fd = open("/dev/ubi_ctrl", O_RDWR);
+	if (fd < 0)
+		return -1;
+
+	if (dev_num < 0)
+		dev_num = UBI_DEV_NUM_AUTO;
+
+	memset(&req, 0, sizeof(req));
+	req.mtd_num = mtd_num;
+	req.ubi_num = dev_num;
+
+	ret = ioctl(fd, UBI_IOCATT, &req);
+
+	close(fd);
+	return ret;
 }
